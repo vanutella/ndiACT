@@ -4,6 +4,17 @@ using UnityEngine;
 
 public class FakeWind : MonoBehaviour
 {
+    public WindZone windZone;
+
+    float movementInterval = 2f;
+    private Vector3 lastPosition;
+    private float timer = 0f;
+
+    public GameObject personObject;
+    public float intensityThreshold = 1f;
+    public float movementIntensity = 0f;
+    private float accumulatedDistance = 0f;
+
     MeshFilter mf;
     Vector3[] originalVerts, deformedVerts;
     public float speed = 1f;
@@ -11,6 +22,8 @@ public class FakeWind : MonoBehaviour
     public float distortionValue = 0.001f;
     void Start()
     {
+        lastPosition = personObject.transform.position;
+
         mf = GetComponent<MeshFilter>();
         originalVerts = mf.mesh.vertices;
         deformedVerts = new Vector3[originalVerts.Length];
@@ -18,6 +31,28 @@ public class FakeWind : MonoBehaviour
 
     void Update()
     {
+        float delta = Vector3.Distance(transform.position, lastPosition);
+        accumulatedDistance += delta;
+
+        lastPosition = personObject.transform.position;
+        timer += Time.deltaTime;
+
+        if (timer >= movementInterval)
+        {
+            movementIntensity = accumulatedDistance / movementInterval; // Durchschnittliche Bewegung pro Sekunde
+            Debug.Log($" Intensität: {movementIntensity:F2} | Schwelle: {intensityThreshold}");
+
+            if (movementIntensity >= intensityThreshold)
+                Debug.Log("Viel Bewegung erkannt.");
+            else
+                Debug.Log("Wenig Bewegung");
+
+            // Reset
+            accumulatedDistance = 0f;
+            timer = 0f;
+        }
+
+        // move trees
         for (int i = 0; i < originalVerts.Length; i++)
         {
             Vector3 v = originalVerts[i];
