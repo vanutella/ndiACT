@@ -1,42 +1,53 @@
 using UnityEngine;
+using LightBuzz.Kinect4Azure;
 
 public class WindToMovement : MonoBehaviour
 {
-    public Transform trackedObject;
     public WindZone windZone;
 
-    [Header("Bewegungseinstellungen")]
-    public float threshold = 0.02f;
+
+    [Header("Wind Variables")]
     public float defaultWind = 0.3f;
     public float maxWind = 1.5f;
     public float sensitivity = 5f;
-    public float smoothFactor = 0.9f;
 
-    [Header("Abfrageintervall")]
+    [Header("Movement")]
+    public float distanceThreshold = 0.2f;
     public float updateInterval = 2f;
 
+    public Transform trackedObj;
     private Vector3 lastPosition;
-    private float smoothedMovement = 0f;
-    private float windValue = 0f;
+    private float accumulatedDistance = 0f;
     private float timer = 0f;
+    private bool trackingValid = false;
 
     void Start()
     {
-        if (trackedObject == null)
-            trackedObject = transform;
-
-        lastPosition = trackedObject.position;
         timer = updateInterval;
+        FindStickman();
     }
 
     void Update()
     {
-        // Bewegung aufzeichnen – aber nicht sofort Wind setzen
-        Vector3 currentPosition = trackedObject.position;
-        float movementAmount = Vector3.Distance(currentPosition, lastPosition);
+       
+
+        // Try to find stickman
+        if (trackedObj == null){
+           FindStickman();
+            Debug.Log("No Stickman found");
+            return;
+        }
+
+        // Calculate distance
+        Vector3 currentPosition = trackedObj.position;
+
+        float delta = Vector3.Distance(currentPosition, lastPosition);
+        accumulatedDistance += delta;
         lastPosition = currentPosition;
 
-        smoothedMovement = Mathf.Lerp(smoothedMovement, movementAmount, 1 - smoothFactor);
+        Debug.Log("Distance travelled: " + accumulatedDistance);
+
+       
 
         // Timer runterzählen
         timer -= Time.deltaTime;
@@ -44,24 +55,36 @@ public class WindToMovement : MonoBehaviour
         // Nur alle 2 Sekunden Wind berechnen
         if (timer <= 0f)
         {
-            windValue = CalculateWind(smoothedMovement);
-            windZone.windMain = windValue;
+            float wind = CalculateWind(accumulatedDistance);
+            windZone.windMain = wind;
+
+            accumulatedDistance = 0f;
             timer = updateInterval;
             Debug.Log("New Interval starts");
         }
     }
 
-    float CalculateWind(float movement)
-    {
-        if (movement < threshold)
-        {
-            Debug.Log("Wenig Bewegung");
+    void FindStickman(){
+        GameObject obj = GameObject.Find("Point (2)");
+        if (obj != null){
+            Debug.Log("Found Obj");
+            trackedObj = obj.transform;
+            lastPosition = trackedObj.position;
+        }
+        else{
+            trackedObj = null;
+        }
+    }
 
+    float CalculateWind(float distance)
+    {
+        if(distance < distanceThreshold){
             return defaultWind;
         }
 
-        float intensity = (movement - threshold) * sensitivity;
+        float excess = distance - distanceThreshold;
+        float extraWind = excess * sensitivity;
         Debug.Log("Viel/genug Bewegung");
-        return Mathf.Clamp(defaultWind + intensity, defaultWind, maxWind);
+        return Mathf.Clamp(defaultWind + extraWind, defaultWind, maxWind);
     }
 }
