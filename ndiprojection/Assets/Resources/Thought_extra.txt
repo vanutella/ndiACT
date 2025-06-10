@@ -1,0 +1,12 @@
+1, "I just want to grab a beer later.";
+2, "Is the latest episode of the drama I’m watching out yet?";
+3, "What is the recipe for Hawaiian pizza?";
+4, "I’m going to dance tonight.";
+5, "The memes I saw were hilarious.";
+6, "Should I binge-watch something new this weekend?";
+7, "What should I wear tomorrow? Maybe something casual, or should I dress up?";
+8, "I need to figure out which coffee shop has the best latte in town.";
+9, "Should I buy that thing I saw online yesterday? It looked cool.";
+10, "When will my favourite band release a new album?";
+11, “Maybe I should call my parents tomorrow to tell her about this exhibition.”;
+12, “I want to go to Disneyland!”;
